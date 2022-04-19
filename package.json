@@ -1,0 +1,25 @@
+{
+    "name": "programmeren4",
+    "version": "1.0.0",
+    "description": "nodejs server",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "test": "test"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://gitlab.com/MickJH/share-a-meal-mjh.git"
+    },
+    "keywords": [
+        "nodejs",
+        "server",
+        "javascript"
+    ],
+    "author": "Mick Holster",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://gitlab.com/MickJH/share-a-meal-mjh/issues"
+    },
+    "homepage": "https://gitlab.com/MickJH/share-a-meal-mjh#readme"
+}
