@@ -5,6 +5,7 @@
     "main": "index.js",
     "scripts": {
         "start": "node index.js",
+        "dev": "nodemon index.js",
         "test": "test"
     },
     "repository": {
@@ -21,5 +22,8 @@
     "bugs": {
         "url": "https://gitlab.com/MickJH/share-a-meal-mjh/issues"
     },
-    "homepage": "https://gitlab.com/MickJH/share-a-meal-mjh#readme"
+    "homepage": "https://gitlab.com/MickJH/share-a-meal-mjh#readme",
+    "devDependencies": {
+        "nodemon": "^2.0.15"
+    }
 }
