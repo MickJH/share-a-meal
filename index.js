@@ -15,14 +15,6 @@ app.all("*", (req, res, next) => {
     next();
 });
 
-
-app.get("/", (req, res) => {
-    res.status(200).json({
-        status: 200,
-        result: "Hello World",
-    });
-});
-
 //Post user to databasea
 app.post("/api/user", (req, res) => {
     let addUser = true;
@@ -60,6 +52,9 @@ app.post("/api/user", (req, res) => {
 //Get user with ID
 app.get("/api/user/:userId", (req, res, next) => {
     const userId = req.params.userId;
+    if (isNaN(userId)) {
+        return next();
+    }
     console.log(`User with ID ${userId} found`);
     let user = database.filter((item) => item.id == userId);
     if (user.length > 0) {
@@ -77,23 +72,23 @@ app.get("/api/user/:userId", (req, res, next) => {
 });
 
 //Update a user
-app.put("api/user/:userId", (req, res) => {
-    let user = res.body;
+app.put("/api/user/:userId", (req, res, next) => {
+    const userId = Number(req.params.userId);
+    if (isNaN(userId)) {
+        return next();
+    }
+    let user = req.body;
     user = {
         id,
         ...user,
     };
 
-    let usersInDatabase = database.filter((item) => item.id === id);
+    let usersInDatabase = database.filter((item) => item.id === userId);
 
     if (usersInDatabase.length > 0) {
-        indexOfUser = database.findIndex((userObj) => userObj.id === id);
-
-        database[indexOfUser] = user;
-
+        indexOfUser = database.findIndex((userObj) => userObj.id === userId);
         let acceptChangedEmail = true;
-
-        const otherUsers = database.filter((item) => item.id !== id);
+        const otherUsers = database.filter((item) => item.id !== userId);
 
         otherUsers.forEach((element) => {
             if (element.emailAddress === user.emailAddress) {
@@ -102,6 +97,7 @@ app.put("api/user/:userId", (req, res) => {
         })
 
         if (acceptChangedEmail) {
+            database[indexOfUser] = user;
             res.status(201).json({
                 status: 201,
                 message: "User has succesfully been updated.",
@@ -110,8 +106,7 @@ app.put("api/user/:userId", (req, res) => {
         } else {
             res.status(409).json({
                 status: 409,
-                message: "Email is already in use by another user.",
-                response: user,
+                message: `${user.emailAddress} is already in use by another user.`,
             })
         }
     } else {
@@ -133,8 +128,11 @@ app.get("/api/user", (req, res, next) => {
 });
 
 //Delete user from database
-app.delete("/api/user/:userId", (req, res) => {
+app.delete("/api/user/:userId", (req, res, next) => {
     const userId = Number(req.params.userId);
+    if (isNaN(userId)) {
+        return next();
+    }
 
     let user = database.filter((item) => item.id === userId);
 
