@@ -25,18 +25,36 @@ app.get("/", (req, res) => {
 
 //Post user to databasea
 app.post("/api/user", (req, res) => {
+    let addUser = true;
     let user = req.body;
-    id++;
-    user = {
-        id,
-        ...user,
-    };
-    console.log(user);
-    database.push(user);
-    res.status(201).json({
-        status: 201,
-        result: database,
+
+    database.forEach((element) => {
+        if (element.emailAddress === user.emailAddress) {
+            addUser = false;
+        }
     });
+
+    if (addUser) {
+        id++;
+        user = {
+            id,
+            ...user,
+        };
+
+        database.push(user);
+        res.status(201).json({
+            status: 201,
+            result: database,
+        });
+    } else {
+        res.status(409).json({
+            status: 409,
+            message: "User email is already in use."
+        });
+    }
+
+    console.log(user);
+
 });
 
 //Get user with ID
@@ -58,6 +76,54 @@ app.get("/api/user/:userId", (req, res, next) => {
     }
 });
 
+//Update a user
+app.put("api/user/:userId", (req, res) => {
+    let user = res.body;
+    user = {
+        id,
+        ...user,
+    };
+
+    let usersInDatabase = database.filter((item) => item.id === id);
+
+    if (usersInDatabase.length > 0) {
+        indexOfUser = database.findIndex((userObj) => userObj.id === id);
+
+        database[indexOfUser] = user;
+
+        let acceptChangedEmail = true;
+
+        const otherUsers = database.filter((item) => item.id !== id);
+
+        otherUsers.forEach((element) => {
+            if (element.emailAddress === user.emailAddress) {
+                acceptChangedEmail = false;
+            }
+        })
+
+        if (acceptChangedEmail) {
+            res.status(201).json({
+                status: 201,
+                message: "User has succesfully been updated.",
+                response: user,
+            })
+        } else {
+            res.status(409).json({
+                status: 409,
+                message: "Email is already in use by another user.",
+                response: user,
+            })
+        }
+    } else {
+        res.status(404).json({
+            status: 404,
+            message: `User with ${userId} not found.`
+        })
+    }
+
+    res.end();
+});
+
 //Get all users
 app.get("/api/user", (req, res, next) => {
     res.status(200).json({
@@ -68,7 +134,7 @@ app.get("/api/user", (req, res, next) => {
 
 //Delete user from database
 app.delete("/api/user/:userId", (req, res) => {
-    const userId = Number(req.params.id);
+    const userId = Number(req.params.userId);
 
     let user = database.filter((item) => item.id === userId);
 
