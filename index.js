@@ -17,7 +17,7 @@ app.all("*", (req, res, next) => {
 
 //Get request on root
 app.get("/", (req, res) => {
-    res.status(200)({
+    res.status(200).json({
         code: 200,
         message: "Hello this is the share a meal API from Mick Holster.",
     })
