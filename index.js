@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
@@ -61,7 +61,7 @@ app.get("/api/user", (req, res, next) => {
     });
 });
 
-app.delete("/api/user/:id", (req, res) => {
+app.delete("/api/user/:userId", (req, res) => {
     const userId = Number(req.params.id)
 
     let user = database.filter((item) => item.id === userId)
