@@ -25,5 +25,9 @@
     "homepage": "https://gitlab.com/MickJH/share-a-meal-mjh#readme",
     "devDependencies": {
         "nodemon": "^2.0.15"
+    },
+    "dependencies": {
+        "body-parser": "^1.20.0",
+        "express": "^4.17.3"
     }
 }
