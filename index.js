@@ -15,6 +15,16 @@ app.all("*", (req, res, next) => {
     next();
 });
 
+//Get request on root
+app.get("/", (req, res) => {
+    res.status(200)({
+        code: 200,
+        message: "Hello this is the share a meal API from Mick Holster.",
+    })
+
+    res.end();
+})
+
 //Post user to databasea
 app.post("/api/user", (req, res) => {
     let addUser = true;
@@ -47,6 +57,8 @@ app.post("/api/user", (req, res) => {
 
     console.log(user);
 
+
+    res.end();
 });
 
 //Get user with ID
@@ -69,6 +81,8 @@ app.get("/api/user/:userId", (req, res, next) => {
             result: `User with ID ${userId} not found`,
         });
     }
+
+    res.end();
 });
 
 //Update a user
@@ -125,6 +139,8 @@ app.get("/api/user", (req, res, next) => {
         status: 200,
         result: database,
     });
+
+    res.end();
 });
 
 //Delete user from database
@@ -159,6 +175,8 @@ app.get("/api/user/profile", (req, res) => {
         status: 200,
         message: "User profiles are not implemented yet."
     })
+
+    res.end();
 })
 
 //If request is not found
@@ -167,6 +185,8 @@ app.all("*", (req, res) => {
         status: 404,
         result: "End-point not found",
     });
+
+    res.end();
 });
 
 app.listen(port, () => {
