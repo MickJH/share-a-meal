@@ -1,4 +1,5 @@
 const assert = require('assert');
+const dbconnection = require('../../database/dbconnection')
 
 let database = [];
 let id = 0;
@@ -12,8 +13,10 @@ let userController = {
         try {
             assert(typeof firstName === 'string', 'First name must be a string');
             assert(typeof lastName === 'string', 'Last name must be a string');
-            assert(typeof isActive === 'boolean', 'Is active must be a boolean');
+            assert(typeof street === 'string', 'Street must be a boolean');
+            assert(typeof city === 'string', 'City must be a string');
             assert(typeof emailAddress === 'string', 'Email address must be a string');
+            assert(typeof password === 'string', 'Password must be a string');
             next();
         } catch (err) {
             const error = {
@@ -60,14 +63,30 @@ let userController = {
 
     //Get all users from database
     getAllUsers: (req, res, next) => {
-        res.status(200).json({
-            status: 200,
-            result: database,
-        });
+        console.log('getAll aangeroepen')
+        dbconnection.getConnection(function(err, connection) {
+            if (err) throw err // not connected!
 
-        res.end();
+            // Use the connection
+            connection.query(
+                'SELECT * FROM user;',
+                function(error, results, fields) {
+                    // When done with the connection, release it.
+                    connection.release()
+
+                    // Handle error after the release.
+                    if (error) throw error
+
+                    // Don't use the connection here, it has been returned to the pool.
+                    console.log('#results = ', results.length)
+                    res.status(200).json({
+                        statusCode: 200,
+                        results: results,
+                    })
+                }
+            )
+        })
     },
-
     //Get user by ID from database-
     getUserById: (req, res, next) => {
         const userId = req.params.userId;
