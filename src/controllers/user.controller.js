@@ -16,11 +16,11 @@ let userController = {
             assert(typeof emailAddress === 'string', 'Email address must be a string');
             next();
         } catch (err) {
-            console.log(err);
-            res.status(400).json({
+            const error = {
                 status: 400,
-                result: err.toString(),
-            })
+                result: err.message,
+            }
+            next(error);
         }
     },
     //Add user to database
@@ -83,10 +83,11 @@ let userController = {
                 result: user,
             });
         } else {
-            res.status(401).json({
+            const error = {
                 status: 401,
                 result: `User with ID ${userId} not found`,
-            });
+            }
+            next(error);
         }
 
         res.end();
