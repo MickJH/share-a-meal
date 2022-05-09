@@ -6,7 +6,7 @@
     "scripts": {
         "start": "node index.js",
         "dev": "nodemon index.js",
-        "test": "test"
+        "test": "mocha test/**/*.test.js --exit"
     },
     "repository": {
         "type": "git",
@@ -24,6 +24,9 @@
     },
     "homepage": "https://gitlab.com/MickJH/share-a-meal-mjh#readme",
     "devDependencies": {
+        "chai": "^4.3.6",
+        "chai-http": "^4.3.0",
+        "mocha": "^10.0.0",
         "nodemon": "^2.0.15"
     },
     "dependencies": {
