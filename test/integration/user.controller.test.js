@@ -1,8 +1,6 @@
 const chai = require("chai");
 const chaiHttp = require("chai-http");
-const path = require("path");
-const crypto = require("crypto");
-const server = require(path.join(__dirname, "../../") + "/index");
+const server = require("../../index");
 chai.should();
 chai.use(chaiHttp);
 
@@ -27,6 +25,7 @@ describe("UC-201 Register as new user - POST /api/user", () => {
                 res.should.be.an("object");
                 let { status, message } = res.body;
                 status.should.equals(400);
+                console.log(res.body)
                 message.should.be.a("string").that.equals("City must be a string.");
                 done();
             });
@@ -112,9 +111,9 @@ describe("UC-205 Modify user - PUT /api/user/:id", () => {
             .put("/api/user/1")
             .send({
                 firstName: "Linda",
-                //lastName missing
+                lastName: "Bloemen",
                 isActive: true,
-                emailAdress: "m.vandullemen@server.nl",
+                //missing email
                 password: "1234567",
                 phoneNumber: "0612345678",
                 roles: "editor,guest",
@@ -124,7 +123,7 @@ describe("UC-205 Modify user - PUT /api/user/:id", () => {
             .end((req, res) => {
                 let { status, message } = res.body;
                 status.should.equals(400);
-                message.should.be.a("string").that.equals("Last name must be a string.");
+                message.should.be.an("string").that.equals("Email address must be a string");
                 done();
             });
     });

@@ -8,21 +8,21 @@ const userController = require('../controllers/user.controller');
 userRouter.get("/", (req, res) => {
     res.status(200).json({
         code: 200,
-        message: "Hello this is the share a meal API from Mick Holster.",
+        message: "Hello this is the share a meal API from Mick Holster, Student number 2183861.",
     })
 
     res.end();
 })
 
 
-//Post user to databasea
-userRouter.post("/api/user", userController.validateUser, userController.addUser);
+//Post user to database
+userRouter.post("/api/user", userController.validateUserCreate, userController.addUser);
 
 //Get user with ID
 userRouter.get("/api/user/:userId", userController.getUserById);
 
 //Update a user
-userRouter.put("/api/user/:userId", userController.updateUser);
+userRouter.put("/api/user/:userId", userController.validateUserUpdate, userController.updateUser);
 
 //Get all users
 userRouter.get("/api/user", userController.getAllUsers);
