@@ -2,13 +2,10 @@ const express = require("express");
 const app = express();
 require('dotenv').config();
 const port = process.env.PORT;
-
-const bodyParser = require("body-parser");
-const router = require('./src/routes/user.routes');
 const userRouter = require("./src/routes/user.routes");
 
 
-app.use(bodyParser.json());
+app.use(express.json());
 
 
 //Check to see with method is called 
@@ -36,7 +33,7 @@ app.use((err, req, res, next) => {
 })
 
 app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+    console.log(`App is listening on port ${port}`);
 });
 
 module.exports = app;
