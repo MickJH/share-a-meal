@@ -132,7 +132,7 @@ let userController = {
                 if (results[0]) {
                     res.status(200).json({
                         status: 200,
-                        results: results[0],
+                        result: results[0],
                     })
                 } else {
                     res.status(404).json({
@@ -202,7 +202,7 @@ let userController = {
                 } else {
                     return next({
                         status: 400,
-                        message: "User doesn't exist"
+                        message: "User does not exist."
                     })
                 }
 
@@ -244,7 +244,7 @@ let userController = {
                     } else {
                         res.status(400).json({
                             status: 400,
-                            message: "User doesn't exist."
+                            message: "User does not exist."
                         })
                     }
 
