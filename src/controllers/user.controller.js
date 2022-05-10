@@ -15,7 +15,7 @@ let userController = {
             assert(typeof lastName === 'string', 'Last name must be a string');
             assert(typeof street === 'string', 'Street must be a boolean');
             assert(typeof city === 'string', 'City must be a string');
-            assert(typeof emailAddress === 'string', 'Email address must be a string');
+            assert(typeof emailAdress === 'string', 'Email address must be a string');
             assert(typeof password === 'string', 'Password must be a string');
             next();
         } catch (err) {
@@ -63,7 +63,7 @@ let userController = {
 
     //Get all users from database
     getAllUsers: (req, res, next) => {
-        console.log('getAll aangeroepen')
+        console.log('getAll called')
         dbconnection.getConnection(function(err, connection) {
             if (err) throw err // not connected!
 
@@ -161,30 +161,35 @@ let userController = {
     },
 
     deleteUser: (req, res, next) => {
-        const userId = Number(req.params.userId);
-        if (isNaN(userId)) {
-            return next();
-        }
+        console.log('deleteUser called')
+        dbconnection.getConnection(function(err, connection) {
+            if (err) throw err // not connected!
 
-        let user = database.filter((item) => item.id === userId);
+            // Use the connection
+            connection.query(
+                'DELETE FROM user WHERE id = ?;', id,
+                function(error, results, fields) {
+                    // When done with the connection, release it.
+                    connection.release()
 
-        if (user.length > 0) {
-            database = database.filter((item) => item.id !== userId);
+                    // Handle error after the release.
+                    if (error) throw error
 
-            res.status(201).json({
-                status: 201,
-                message: "User removed succesfully.",
-            });
-        } else {
-            res.status(404).json({
-                status: 404,
-                message: `User with ${userId} is not found.`,
-            });
-        }
+                    // Don't use the connection here, it has been returned to the pool.
+                    if (results.affectedRows === 1) {
+                        console.log('#results = ', results.length)
+                        res.status(200).json({
+                            statusCode: 200,
+                            results: "User has been deleted succesfully",
+                        })
+                    }
 
-        res.end();
+                }
+            )
+        })
     },
 
+    //Get user profile
     profileUser: (req, res, next) => {
         res.status(200).json({
             status: 200,
