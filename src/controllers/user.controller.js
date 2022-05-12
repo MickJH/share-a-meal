@@ -84,12 +84,31 @@ let userController = {
     //Get all users from database
     getAllUsers: (req, res, next) => {
         console.log('getAll called')
+
+        //Get Query params
+        const { firstName, isActive } = req.query;
+        console.log(`firstName = ${firstName} isActive = ${isActive}`);
+
+        let queryString = `SELECT * FROM user`;
+        if (firstName || isActive) {
+            queryString += ' WHERE ';
+            if (firstName && isActive) {
+                queryString += ` AND `;
+            }
+            if (firstName)
+                if (isActive) {
+                    queryString += `isActive='${isActive}'`;
+                }
+        }
+        queryString += ';';
+        console.log(queryString);
+
         dbconnection.getConnection(function(err, connection) {
             if (err) throw err // not connected!
 
             // Use the connection
             connection.query(
-                'SELECT * FROM user;',
+                queryString,
                 function(error, results, fields) {
                     // When done with the connection, release it.
                     connection.release()
