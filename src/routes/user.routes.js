@@ -1,6 +1,7 @@
 const express = require("express");
 const userRouter = express.Router();
 const userController = require('../controllers/user.controller');
+const authController = require('../controllers/authentication.controller');
 
 
 
@@ -16,21 +17,21 @@ userRouter.get("/", (req, res) => {
 
 
 //Post user to database
-userRouter.post("/api/user", userController.validateUserCreate, userController.addUser);
+userRouter.post("/api/user", authController.validateToken, userController.validateUserCreate, userController.addUser);
 
 //Get user with ID
-userRouter.get("/api/user/:userId", userController.getUserById);
+userRouter.get("/api/user/:userId", authController.validateToken, userController.getUserById);
 
 //Update a user
-userRouter.put("/api/user/:userId", userController.validateUserUpdate, userController.updateUser);
+userRouter.put("/api/user/:userId", authController.validateToken, userController.validateUserUpdate, userController.updateUser);
 
 //Get all users
-userRouter.get("/api/user", userController.getAllUsers);
+userRouter.get("/api/user", authController.validateToken, userController.getAllUsers);
 
 //Delete user from database
-userRouter.delete("/api/user/:userId", userController.deleteUser);
+userRouter.delete("/api/user/:userId", authController.validateToken, userController.deleteUser);
 
 //Get user profile
-userRouter.get("/api/user/profile", userController.profileUser);
+userRouter.get("/api/user/profile", authController.validateToken, userController.profileUser);
 
 module.exports = userRouter;

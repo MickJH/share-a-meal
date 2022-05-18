@@ -3,6 +3,7 @@ const app = express();
 require('dotenv').config();
 const port = process.env.PORT;
 const userRouter = require("./src/routes/user.routes");
+const logger = require('./src/config/config').logger
 
 
 app.use(express.json());
@@ -11,7 +12,7 @@ app.use(express.json());
 //Check to see with method is called 
 app.all("*", (req, res, next) => {
     const method = req.method;
-    console.log(`Method ${method} is aangeroepen`);
+    logger.debug(`Method ${method} is aangeroepen`);
     next();
 });
 
@@ -33,7 +34,7 @@ app.use((err, req, res, next) => {
 })
 
 app.listen(port, () => {
-    console.log(`App is listening on port ${port}`);
+    logger.debug(`App is listening on port ${port}`);
 });
 
 module.exports = app;
