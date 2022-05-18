@@ -1,5 +1,6 @@
 const assert = require('assert');
-const dbconnection = require('../../database/dbconnection')
+const dbconnection = require('../../database/dbconnection');
+const logger = require('../config/config').logger;
 
 let userController = {
 
@@ -83,7 +84,7 @@ let userController = {
 
     //Get all users from database
     getAllUsers: (req, res, next) => {
-        console.log('getAll called')
+        logger.debug('getAll called')
         dbconnection.getConnection(function(err, connection) {
             if (err) throw err // not connected!
 
@@ -213,7 +214,7 @@ let userController = {
     },
 
     deleteUser: (req, res, next) => {
-        console.log('deleteUser called')
+        logger.debug('deleteUser called')
         dbconnection.getConnection(function(err, connection) {
             if (err) throw err // not connected!
 
