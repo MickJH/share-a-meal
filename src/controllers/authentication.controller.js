@@ -134,4 +134,44 @@ module.exports = {
             })
         }
     },
+
+    checkIfMealIsFromUser: (req, res, next) => {
+        dbconnection.getConnection(function(err, connection) {
+            if (err) next(err);
+
+            const id = req.params.id;
+
+            connection.query('SELECT * FROM meal WHERE id = ?', id, (error, results, fields) => {
+                //Release connection with database
+                connection.release();
+
+                if (err) next(err);
+
+                if (results[0]) {
+                    const cookId = results[0].cookid;
+                    const jsonToken = authHeader.substring(7, authHeader.length);
+                    let idFromUser;
+
+                    jwt.verify(token, process.env.JWT_SECRET, function(err, decoded) {
+                        if (err) next(err);
+                        idFromUser = decoded.cookId;
+                    })
+
+                    if (idFromUser === cookId) {
+                        next();
+                    } else {
+                        res.status(401).json({
+                            status: 401,
+                            message: "You are not the cook of this meal"
+                        })
+                    }
+                } else {
+                    res.status(401).json({
+                        status: 401,
+                        message: "Meal not found"
+                    })
+                }
+            })
+        })
+    }
 }

@@ -1,25 +1,26 @@
 const assert = require('assert');
+const { resolveSoa } = require('dns');
+const { nextTick } = require('process');
 const dbconnection = require('../../database/dbconnection');
 const logger = require('../config/config').logger;
 
 let mealController = {
 
 
-    validateUserCreate: (req, res, next) => {
+    validateMeal: (req, res, next) => {
         const { name, description, isActive, isVega, isVegan, isToTakeHome, dateTime, imageUrl, allergenes, maxAmountOfParticipants, price } = req.body;
 
         try {
             assert(typeof name === 'string', 'Meal name must be a string.');
             assert(typeof description === 'string', 'Description must be a string.');
-            assert(typeof isActive === 'boolean', 'Is active must be a boolean.');
-            assert(typeof isVega === 'boolean', 'City must be a string.');
-            assert(typeof isVegan === 'boolean', 'Is vegan must be a boolean.');
-            assert(typeof isToTakeHome === 'boolean', 'Is to take home must be a boolean.');
+            assert(typeof isActive === 'string', 'Is active must be a string.');
+            assert(typeof isVega === 'string', 'City must be a string.');
+            assert(typeof isVegan === 'string', 'Is vegan must be a string.');
+            assert(typeof isToTakeHome === 'boolean', 'Is to take home must be a string.');
             assert(typeof dateTime === 'string', 'Date must be a string.');
             assert(typeof imageUrl === 'string', 'Image URL must be a string.');
-            assert(typeof allergenes === 'array', 'Allergenes must be an array.');
-            assert(typeof maxAmountOfParticipants === 'integer', 'Participants must be an integer.');
-            assert(typeof price === 'double', 'Price must be a double.');
+            assert(typeof maxAmountOfParticipants === 'string', 'Participants must be a string.');
+            assert(typeof price === 'string', 'Price must be a string.');
             next();
         } catch (err) {
             next({
@@ -29,49 +30,129 @@ let mealController = {
         }
     },
 
+    validateMealUpdate: (req, res, next) => {
+        let { name, price, maxAmountOfParticipants } = req.body;
+
+        if (name || price || maxAmountOfParticipants) {
+            try {
+                if (name) {
+                    assert(typeof name === 'string', 'Meal name must be a string');
+                }
+                if (price) {
+                    assert(typeof price === 'string', 'Price must be a string');
+                }
+                if (maxAmountOfParticipants) {
+                    assert(typeof maxAmountOfParticipants === 'string', 'Participants must be a string');
+                }
+                next();
+            } catch (err) {
+                res.status(400).json({
+                    status: 400,
+                    message: err.message,
+                });
+            }
+        } else {
+            res.status(400).json({
+                status: 400,
+                message: 'Required field is missing',
+            })
+        }
+    },
+
     //Add meal to database
     addMeal: (req, res, next) => {
-        dbconnection.getConnection((err, connection) => {
+        logger.debug("addMeal called")
+        dbconnection.getConnection(function(err, connection) {
             if (err) throw err;
 
-            let { emailAdress } = req.body;
+            const meal = req.body;
+            const allergenes = req.body.allergenes;
+            let arrayAllergenes = [];
+            let stringAllergenes = "";
 
-            connection.query("SELECT COUNT(emailAdress) as count FROM user WHERE emailAdress = ?", emailAdress, (err, results, fields) => {
+
+            if (allergenes) {
+                allergenes.forEach(element => {
+                    if (element === "gluten" || element === "noten" || element == "lactose") {
+                        if (!(arrayAllergenes.includes(element))) {
+                            arrayAllergenes.push(element);
+                            stringAllergenes += element + ",";
+                        }
+                    }
+                });
+                stringAllergenes = stringAllergenes.slice(0, -1);
+            }
+
+
+            //Verify token
+            const authHeader = req.headers.authorization;
+            const token = authHeader.substring(7, authHeader.length);
+            let cookId;
+
+            jwt.verify(token, process.env.JWT_SECRET, function(err, decoded) {
+                cookId = decoded.userId;
+            });
+
+
+            const addMeal = [meal.name, meal.description, meal.isActive, meal.isVega, meal.isVegan, meal.isToTakeHome, meal.dateTime, meal.imageUrl, stringAllergenes, cookId, meal.maxAmountOfParticipants, meal.price];
+
+            logger.info(mealToAdd);
+
+            //SQL Queries
+            connection.query('INSERT INTO meal (name, description, isActive, isVegan, isToTakeHome, dateTime, imageUrl, allergenes, maxAmountOfParticipants, price) VALUES (?,?,?,?,?,?,?,?,?,?)', addMeal, (err, results, fields) => {
+                connection.release();
                 if (err) throw err;
 
-                if (results[0].count === 1) {
-                    res.status(409).json({
-                        status: 409,
-                        message: "Email address already exists."
-                    });
-                } else {
-                    //SQL QUERY
-                    const { firstName, lastName, city, emailAdress, password, street } = req.body;
-                    connection.query("INSERT INTO user (firstName, lastName, emailAdress, password, street, city) VALUES (?, ?, ?, ?, ? ,?)", [firstName, lastName, emailAdress, password, street, city], (err, results, fields) => {
+                const mealId = results.insertId;
+
+                connection.query('SELECT * FROM user WHERE id = ?', cookId, (err, results, fields) => {
+                    connection.release();
+                    if (err) throw err;
+
+                    const cook = results[0];
+
+                    connection.query('INSERT INTO meal_participants_user (mealId, userId) VALUES (?,?)', [mealId, cookId], (err, results, fields) => {
+                        connection.release();
                         if (err) throw err;
 
-                        connection.query("SELECT * FROM user WHERE id = ?", results.insertId, (err, results, fields) => {
+                        connection.query('SELECT * FROM meal_participants_user WHERE mealId = ?', mealId, (err, results, fields) => {
+                            connection.release();
                             if (err) throw err;
 
-                            connection.release();
+                            let arrayParticipantId = [];
 
-                            if (results[0].isActive === 1) {
-                                results[0].isActive = true;
-                            } else {
-                                results[0].isActive = false;
-                            }
-
-                            res.status(201).json({
-                                status: 201,
-                                result: results[0],
-                                message: "User has succesfully been created",
+                            results.forEach(element => {
+                                arrayParticipantId.push(element.userId);
                             });
-                        })
+
+                            let arrayParticipants = [];
+                            arrayParticipantId.forEach(element => {
+                                connection.query('SELECT * FROM user WHERE id = ?', element, (err, results, fields) => {
+                                    connection.release();
+                                    if (err) throw err;
+
+                                    arrayParticipants.push(results[0]);
+
+                                    mealResult = {
+                                        "id": mealId,
+                                        ...meal,
+                                        "cook": cook,
+                                        "participants": arrayParticipants
+                                    };
+
+                                    logger.info(mealResult)
+
+                                    res.status(201).json({
+                                        status: 201,
+                                        result: mealResult,
+                                    });
+                                });
+                            });
+                        });
                     });
-                }
+                });
             });
         });
-
     },
 
     //Get all meals from database
@@ -83,12 +164,12 @@ let mealController = {
             // Use the connection
             connection.query(
                 'SELECT * FROM meal;',
-                function(error, results, fields) {
+                function(err, results, fields) {
                     // When done with the connection, release it.
                     connection.release()
 
-                    // Handle error after the release.
-                    if (error) throw error
+                    // Handle err after the release.
+                    if (err) throw err
 
                     // Don't use the connection here, it has been returned to the pool.
                     console.log('#results = ', results.length)
@@ -101,13 +182,11 @@ let mealController = {
         })
     },
     //Get meal by ID from database-
-    getUserById: (req, res, next) => {
-
+    getMealById: (req, res, next) => {
+        logger.debug("getMealById called")
         dbconnection.getConnection((err, connection) => {
             if (err) throw err;
-
-
-            const id = Number(req.params.userId);
+            const id = Number(req.params.mealId);
 
             if (isNaN(id)) {
                 return next();
@@ -119,7 +198,7 @@ let mealController = {
                 // When done with the connection, release it.
                 connection.release()
 
-                // Handle error after the release.
+                // Handle err after the release.
                 if (err) throw err;
 
                 if (results[0]) {
@@ -143,62 +222,42 @@ let mealController = {
     },
 
     //Update meal
-    updateUser: (req, res, next) => {
+    updateMeal: (req, res, next) => {
+        logger.debug("updateMeal called")
         dbconnection.getConnection((err, connection) => {
             if (err) throw err;
 
+            const meal = req.body;
             const id = Number(req.params.userId);
 
             if (isNaN(id)) {
                 return next();
             }
 
-            const newUser = req.body;
+            //SQL Query
+            connection.query('SELECT * FROM meal WHERE id = ?', id, (err, results, fields) => {
+                connection.release();
 
-            connection.query("SELECT * FROM user WHERE id = ?", id, (err, results, fields) => {
-                if (err) throw err;
+                if (err) throw err
 
-                const oldUser = results[0];
-
-                if (oldUser) {
-
-                    connection.query("SELECT COUNT(*) AS count FROM user WHERE emailAdress = ? AND id <> ?", [newUser.emailAdress, id], (err, results, fields) => {
-                        if (err) throw err;
-
-                        if (results[0].count === 1) {
-                            return next({
-                                status: 409,
-                                message: "Email is already in use by another user"
-                            })
-                        } else {
-                            const user = {
-                                ...oldUser,
-                                ...newUser
-                            }
-
-                            const { firstName, lastName, emailAdress, password, street, city } = user;
-
-                            connection.query("UPDATE user SET firstName = ?, lastName = ?, emailAdress = ?, password = ?, street = ?, city = ? WHERE id = ?", [firstName, lastName, emailAdress, password, street, city, id], (err, results, fields) => {
-                                if (err) throw err;
-
-                                connection.release();
-
-                                res.status(200).json({
-                                    status: 200,
-                                    result: user
-                                });
-
-                                res.end()
-                            });
-                        }
-                    });
-                } else {
-                    return next({
-                        status: 400,
-                        message: "User does not exist"
-                    })
+                let updatedMeal = {
+                    ...results[0],
+                    ...meal,
                 }
 
+                const updateMeal = [meal.name, meal.description, meal.isActive, meal.isVega, meal.isVegan, meal.isToTakeHome, meal.dateTime, meal.imageUrl, meal.maxAmountOfParticipants, meal.price, id];
+
+                connection.query('UPDATE meal SET name = ?, description = ?, isActive = ?, isVega = ?, isVegan = ?, isToTakeHome = ?, dateTime = ?, imageUrl = ?, maxAmountOfParticipants = ?, price = ? WHERE id = ?', updateMeal, (err, results, fields) => {
+                    {
+                        connection.release();
+                        if (err) throw err
+
+                        res.status(200).json({
+                            status: 200,
+                            result: updatedMeal,
+                        })
+                    }
+                })
             })
 
         })
@@ -206,25 +265,25 @@ let mealController = {
     },
 
     deleteMeal: (req, res, next) => {
-        logger.debug('deleteUser called')
+        logger.debug('deleteMeal called')
         dbconnection.getConnection(function(err, connection) {
             if (err) throw err // not connected!
 
             //localize userId in variable
             const id = Number(req.params.userId);
 
-            //if userId isn't a number
+            //if mealId isn't a number
             if (isNaN(id)) {
                 return next();
             }
 
             // Use the connection
             connection.query(
-                'DELETE FROM user WHERE id = ?', id, (err, results, fields) => {
+                'DELETE FROM meal WHERE id = ?', id, (err, results, fields) => {
                     // When done with the connection, release it.
                     connection.release()
 
-                    // Handle error after the release.
+                    // Handle err after the release.
                     if (err) throw err;
 
                     // Don't use the connection here, it has been returned to the pool.
@@ -232,12 +291,12 @@ let mealController = {
                         console.log('#results = ', results.length)
                         res.status(200).json({
                             status: 200,
-                            message: "User has been deleted succesfully",
+                            message: "Meal has been deleted succesfully",
                         })
                     } else {
                         res.status(400).json({
                             status: 400,
-                            message: "User does not exist"
+                            message: "Meal does not exist"
                         })
                     }
 
@@ -246,15 +305,7 @@ let mealController = {
         })
     },
 
-    //Get user profile
-    profileUser: (req, res, next) => {
-        res.status(200).json({
-            status: 200,
-            message: "User profiles are not implemented yet.",
-        });
 
-        res.end();
-    },
 }
 
-module.exports = userController;
+module.exports = mealController;

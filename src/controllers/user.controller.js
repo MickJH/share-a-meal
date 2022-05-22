@@ -1,5 +1,6 @@
 const assert = require('assert');
 const dbconnection = require('../../database/dbconnection');
+const { jwtSecretKey } = require('../config/config');
 const logger = require('../config/config').logger;
 
 let userController = {
@@ -39,6 +40,7 @@ let userController = {
     },
     //Add user to database
     addUser: (req, res, next) => {
+        logger.debug("addUser called")
         dbconnection.getConnection((err, connection) => {
             if (err) throw err;
 
@@ -110,7 +112,7 @@ let userController = {
     },
     //Get user by ID from database-
     getUserById: (req, res, next) => {
-
+        logger.debug("getUserById called")
         dbconnection.getConnection((err, connection) => {
             if (err) throw err;
 
@@ -152,6 +154,7 @@ let userController = {
 
     //Update user
     updateUser: (req, res, next) => {
+        logger.debug("updateUser called")
         dbconnection.getConnection((err, connection) => {
             if (err) throw err;
 
@@ -256,12 +259,27 @@ let userController = {
 
     //Get user profile
     profileUser: (req, res, next) => {
-        res.status(200).json({
-            status: 200,
-            message: "User profiles are not implemented yet.",
-        });
+        dbconnection.getConnection((err, connection) => {
+            if (err) throw err;
 
-        res.end();
+            const authHeader = req.headers.authorization;
+            const token = authHeader.substring(7, authHeader.length);
+            let id;
+
+            jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+                id = decoded.userId;
+            })
+
+            connection.query('SLEECT * FROM user WHERE id = ?', id, (err, results, fields) => {
+                connection.release();
+                if (err) throw err;
+
+                res.status(200).json({
+                    status: 200,
+                    result: results[0]
+                })
+            })
+        })
     },
 }
 
