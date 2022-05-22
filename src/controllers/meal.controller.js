@@ -12,10 +12,10 @@ let mealController = {
         try {
             assert(typeof name === 'string', 'Meal name must be a string.');
             assert(typeof description === 'string', 'Description must be a string.');
-            assert(typeof isActive === 'string', 'Is active must be a string.');
-            assert(typeof isVega === 'string', 'City must be a string.');
-            assert(typeof isVegan === 'string', 'Is vegan must be a string.');
-            assert(typeof isToTakeHome === 'boolean', 'Is to take home must be a string.');
+            assert(typeof isActive === 'number', 'Is active must be a number.');
+            assert(typeof isVega === 'number', 'City must be a number.');
+            assert(typeof isVegan === 'number', 'Is vegan must be a number.');
+            assert(typeof isToTakeHome === 'number', 'Is to take home must be a number.');
             assert(typeof dateTime === 'string', 'Date must be a string.');
             assert(typeof imageUrl === 'string', 'Image URL must be a string.');
             assert(typeof maxAmountOfParticipants === 'string', 'Participants must be a string.');
@@ -172,7 +172,7 @@ let mealController = {
                     console.log('#results = ', results.length)
                     res.status(200).json({
                         status: 200,
-                        results: results,
+                        result: results,
                     })
                 }
             )
@@ -206,7 +206,7 @@ let mealController = {
                 } else {
                     res.status(404).json({
                         status: 404,
-                        message: `Meal with ${id} not found.`
+                        message: `This meal does not exist`
                     })
                 }
 
@@ -225,7 +225,7 @@ let mealController = {
             if (err) throw err;
 
             const meal = req.body;
-            const id = Number(req.params.userId);
+            const id = Number(req.params.mealId);
 
             if (isNaN(id)) {
                 return next();
@@ -267,7 +267,7 @@ let mealController = {
             if (err) throw err // not connected!
 
             //localize userId in variable
-            const id = Number(req.params.userId);
+            const id = Number(req.params.mealId);
 
             //if mealId isn't a number
             if (isNaN(id)) {
