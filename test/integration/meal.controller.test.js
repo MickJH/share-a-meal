@@ -263,7 +263,6 @@ describe('UC-3 Manage meals /api/meal', () => {
                     "isVega": 1,
                     "isVegan": 1,
                     "isToTakeHome": 1,
-                    "dateTime": "2022-05-15T20:07:10.870Z",
                     "imageUrl": "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
                     "maxAmountOfParticipants": "6",
                     "price": "6.75"

@@ -7,7 +7,7 @@ let mealController = {
 
 
     validateMeal: (req, res, next) => {
-        const { name, description, isActive, isVega, isVegan, isToTakeHome, dateTime, imageUrl, allergenes, maxAmountOfParticipants, price } = req.body;
+        const { name, description, isActive, isVega, isVegan, isToTakeHome, imageUrl, maxAmountOfParticipants, price } = req.body;
 
         try {
             assert(typeof name === 'string', 'Meal name must be a string.');
@@ -16,7 +16,6 @@ let mealController = {
             assert(typeof isVega === 'number', 'City must be a number.');
             assert(typeof isVegan === 'number', 'Is vegan must be a number.');
             assert(typeof isToTakeHome === 'number', 'Is to take home must be a number.');
-            assert(typeof dateTime === 'string', 'Date must be a string.');
             assert(typeof imageUrl === 'string', 'Image URL must be a string.');
             assert(typeof maxAmountOfParticipants === 'string', 'Participants must be a string.');
             assert(typeof price === 'string', 'Price must be a string.');
