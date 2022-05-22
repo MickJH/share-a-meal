@@ -14,8 +14,8 @@ module.exports = {
             if (err) {
                 logger.error('Error getting connection from dbconnection')
                 res.status(500).json({
-                    error: err.toString(),
-                    datetime: new Date().toISOString(),
+                    status: 500,
+                    message: err.toString(),
                 })
             }
             if (connection) {
@@ -27,8 +27,8 @@ module.exports = {
                         if (err) {
                             logger.error('Error: ', err.toString())
                             res.status(500).json({
-                                error: err.toString(),
-                                datetime: new Date().toISOString(),
+                                status: 500,
+                                message: err.toString(),
                             })
                         }
                         if (rows) {
@@ -57,8 +57,8 @@ module.exports = {
                                             userinfo
                                         )
                                         res.status(200).json({
-                                            statusCode: 200,
-                                            results: {...userinfo, token },
+                                            status: 200,
+                                            result: {...userinfo, token },
                                         })
                                     }
                                 )
@@ -67,8 +67,8 @@ module.exports = {
                                     'User not found or password invalid'
                                 )
                                 res.status(401).json({
+                                    status: 401,
                                     message: 'User not found or password invalid',
-                                    datetime: new Date().toISOString(),
                                 })
                             }
                         }
@@ -95,8 +95,8 @@ module.exports = {
             next()
         } catch (ex) {
             res.status(422).json({
-                error: ex.toString(),
-                datetime: new Date().toISOString(),
+                status: 422,
+                message: ex.toString(),
             })
         }
     },
@@ -111,8 +111,8 @@ module.exports = {
         if (!authHeader) {
             logger.warn('Authorization header missing!')
             res.status(401).json({
-                error: 'Authorization header missing!',
-                datetime: new Date().toISOString(),
+                status: 401,
+                message: 'Authorization header missing!',
             })
         } else {
             // Strip the word 'Bearer ' from the headervalue
@@ -122,8 +122,8 @@ module.exports = {
                 if (err) {
                     logger.warn('Not authorized')
                     res.status(401).json({
-                        error: 'Not authorized',
-                        datetime: new Date().toISOString(),
+                        status: 401,
+                        message: 'Not authorized',
                     })
                 }
                 if (payload) {
@@ -169,6 +169,45 @@ module.exports = {
                     res.status(401).json({
                         status: 401,
                         message: "Meal not found"
+                    })
+                }
+            })
+        })
+    },
+
+    checkIfAccountIsFromUser: (req, res, next) => {
+        dbconnection.getConnection((err, connection) => {
+            if (err) throw err;
+
+            let id = req.params.userId;
+
+            connection.query('SELECT * FROM user WHERE id = ?', id, (err, results, fields) => {
+                connection.release();
+                if (err) throw err;
+
+                if (results[0]) {
+                    const ownerOfAccount = results[0].id;
+
+                    const authHeader = req.headers.authorization;
+                    const token = authHeader.substring(7, authHeader.length);
+
+                    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+                        if (err) throw err;
+                        id = decoded.userId;
+                    })
+
+                    if (id === ownerOfAccount) {
+                        next();
+                    } else {
+                        res.status(403).json({
+                            status: 403,
+                            message: "Account is not yours"
+                        })
+                    }
+                } else {
+                    res.status(400).json({
+                        status: 400,
+                        message: "User does not exist"
                     })
                 }
             })

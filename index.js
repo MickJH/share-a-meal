@@ -3,6 +3,8 @@ const app = express();
 require('dotenv').config();
 const port = process.env.PORT;
 const userRouter = require("./src/routes/user.routes");
+const authRouter = require("./src/routes/authentication.routes");
+const mealRouter = require("./src/routes/meal.routes");
 const logger = require('./src/config/config').logger
 
 
@@ -17,6 +19,8 @@ app.all("*", (req, res, next) => {
 });
 
 app.use(userRouter);
+app.use(authRouter);
+app.use(mealRouter);
 
 //If request is not found
 app.all("*", (req, res) => {
