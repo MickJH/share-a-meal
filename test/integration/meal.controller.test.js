@@ -10,9 +10,7 @@ const {
 chai.should();
 chai.expect();
 chai.use(chaiHttp);
-
-let token;
-let wrongToken;
+const { jwtSecretKey, logger } = require('../../src/config/config')
 
 const CLEAR_MEAL_TABLE = 'DELETE IGNORE FROM `meal`;'
 const CLEAR_PARTICIPANTS_TABLE = 'DELETE IGNORE FROM `meal_participants_user`;'
@@ -23,23 +21,6 @@ const INSERT_MEALS = 'INSERT INTO `meal` (`id`, `name`, `description`, `imageUrl
 const INSERT_PARTICIPATION = 'INSERT INTO `meal_participants_user` (`mealId`, `userId`) VALUES' + "(2, 1);"
 
 describe('UC-3 Manage meals /api/meal', () => {
-
-    beforeEach((done) => {
-        token = jwt.sign({
-                userId: 1
-            },
-            process.env.JWT_SECRET, {
-                expiresIn: '100d'
-            });
-
-        wrongToken = jwt.sign({
-                userId: 2
-            },
-            process.env.JWT_SECRET, {
-                expiresIn: '100d'
-            });
-        done()
-    })
 
     beforeEach((done) => {
         dbconnection.getConnection((err, connection) => {
@@ -54,11 +35,13 @@ describe('UC-3 Manage meals /api/meal', () => {
 
     describe('UC-301 Add meal', () => {
 
-        it('TC-301-1 Mandatory field is missing', (done) => {
+        it('TC-301-1 Required input is missing', (done) => {
             chai.request(server)
                 .post('/api/meal')
+                .set("authorization", "Bearer " + jwt.sign({ userId: 1 }, jwtSecretKey))
                 .send({
-                    "description": "Dé pastaklassieker bij uitstek.",
+                    //Name missing
+                    "description": "De pastaklassieker bij uitstek.",
                     "isActive": "1",
                     "isVega": "1",
                     "isVegan": "1",
@@ -90,6 +73,7 @@ describe('UC-3 Manage meals /api/meal', () => {
         it('TC-301-2 not logged in (no token)', (done) => {
             chai.request(server)
                 .post('/api/meal')
+                .set("authorization", "Bearer " + jwt.sign({ userId: 1 }, jwtSecretKey))
                 .send({
                     "name": "Spaghetti Bolognese",
                     "description": "Dé pastaklassieker bij uitstek.",
@@ -154,7 +138,7 @@ describe('UC-3 Manage meals /api/meal', () => {
                         message
                     } = res.body
                     status.should.be.a('number').that.equals(401)
-                    message.should.be.a('string').that.equals('Unauthorized')
+                    message.should.be.a('string').that.equals('Not authorized')
                     done()
                 })
         })
@@ -162,10 +146,7 @@ describe('UC-3 Manage meals /api/meal', () => {
         it('TC-301-3 Meal added succesfully', (done) => {
             chai.request(server)
                 .post('/api/meal')
-                .set(
-                    'authorization',
-                    'Bearer ' + token
-                )
+                .set("authorization", "Bearer " + jwt.sign({ userId: 1 }, jwtSecretKey))
                 .send({
                     "name": "Spaghetti Bolognese",
                     "description": "Dé pastaklassieker bij uitstek.",
@@ -239,10 +220,7 @@ describe('UC-3 Manage meals /api/meal', () => {
         it('TC-302-1 Mandatory field is missing', (done) => {
             chai.request(server)
                 .put('/api/meal/1')
-                .set(
-                    'authorization',
-                    'Bearer ' + token
-                )
+                .set("authorization", "Bearer " + jwt.sign({ userId: 1 }, jwtSecretKey))
                 .send({
                     "description": "Dé pastaklassieker bij uitstek.",
                     "isActive": "1",
@@ -274,6 +252,7 @@ describe('UC-3 Manage meals /api/meal', () => {
         it('TC-302-2 not logged in (no token)', (done) => {
             chai.request(server)
                 .put('/api/meal/1')
+                .set("authorization", "Bearer " + jwt.sign({ userId: 1 }, jwtSecretKey))
                 .send({
                     "name": "Spaghetti Bolognese",
                     "description": "Dé pastaklassieker bij uitstek.",
@@ -308,10 +287,7 @@ describe('UC-3 Manage meals /api/meal', () => {
         it('TC-302-3 Not the owner of the data', (done) => {
             chai.request(server)
                 .put('/api/meal/1')
-                .set(
-                    'authorization',
-                    'Bearer ' + wrongToken
-                )
+                .set("authorization", "Bearer " + jwt.sign({ userId: 2 }, jwtSecretKey))
                 .send({
                     "name": "Spaghetti Bolognese",
                     "description": "Dé pastaklassieker bij uitstek.",
@@ -345,11 +321,8 @@ describe('UC-3 Manage meals /api/meal', () => {
 
         it('TC-302-4 Meal does not exist', (done) => {
             chai.request(server)
-                .put('/api/meal/420')
-                .set(
-                    'authorization',
-                    'Bearer ' + wrongToken
-                )
+                .put('/api/meal/0')
+                .set("authorization", "Bearer " + jwt.sign({ userId: 1 }, jwtSecretKey))
                 .send({
                     "name": "Spaghetti Bolognese",
                     "description": "Dé pastaklassieker bij uitstek.",
@@ -384,10 +357,7 @@ describe('UC-3 Manage meals /api/meal', () => {
         it('TC-302-5 Meal succesfully updated', (done) => {
             chai.request(server)
                 .put('/api/meal/1')
-                .set(
-                    'authorization',
-                    'Bearer ' + token
-                )
+                .set("authorization", "Bearer " + jwt.sign({ userId: 1 }, jwtSecretKey))
                 .send({
                     "price": "6.75"
                 })
@@ -428,6 +398,7 @@ describe('UC-3 Manage meals /api/meal', () => {
         it('TC-303-1 List of meals returned', (done) => {
             chai.request(server)
                 .get('/api/meal')
+                .set("authorization", "Bearer " + jwt.sign({ userId: 1 }, jwtSecretKey))
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
@@ -458,17 +429,6 @@ describe('UC-3 Manage meals /api/meal', () => {
 
                     expect(result[0].cookId).to.equal(1)
 
-                    /* expect(result[0].cook.cookId).to.equal(1);
-                    expect(result[0].cook.firstName).to.equal('first');
-                    expect(result[0].cook.lastName).to.equal('last');
-                    expect(result[0].cook.isActive).to.equal(1);
-                    expect(result[0].cook.emailAdress).to.equal('name@server.nl');
-                    expect(result[0].cook.password).to.equal('secret');
-                    expect(result[0].cook.phoneNumber).to.equal('-');
-                    expect(result[0].cook.roles).to.equal('editor,guest');
-                    expect(result[0].cook.street).to.equal('street');
-                    expect(result[0].cook.city).to.equal('city'); */
-
                     expect(result[1].id).to.equal(2);
                     expect(result[1].name).to.equal('Meal B')
                     expect(result[1].description).to.equal('description')
@@ -482,17 +442,6 @@ describe('UC-3 Manage meals /api/meal', () => {
                     expect(result[1].price).to.equal('6.50')
 
                     expect(result[0].cookId).to.equal(1)
-
-                    /* expect(result[1].cook.cookId).to.equal(1);
-                    expect(result[1].cook.firstName).to.equal('first');
-                    expect(result[1].cook.lastName).to.equal('last');
-                    expect(result[1].cook.isActive).to.equal(1);
-                    expect(result[1].cook.emailAdress).to.equal('name@server.nl');
-                    expect(result[1].cook.password).to.equal('secret');
-                    expect(result[1].cook.phoneNumber).to.equal('-');
-                    expect(result[1].cook.roles).to.equal('editor,guest');
-                    expect(result[1].cook.street).to.equal('street');
-                    expect(result[1].cook.city).to.equal('city'); */
                     done()
                 })
         })
@@ -501,7 +450,8 @@ describe('UC-3 Manage meals /api/meal', () => {
     describe('UC-304 Request details of a meal', () => {
         it('TC-304-1 Meal does not exist', (done) => {
             chai.request(server)
-                .get('/api/meal/420')
+                .get('/api/meal/0')
+                .set("authorization", "Bearer " + jwt.sign({ userId: 1 }, jwtSecretKey))
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(404)
@@ -525,6 +475,7 @@ describe('UC-3 Manage meals /api/meal', () => {
     it('TC-304-2 Meal details returned', (done) => {
         chai.request(server)
             .get('/api/meal/1')
+            .set("authorization", "Bearer " + jwt.sign({ userId: 1 }, jwtSecretKey))
             .end((err, res) => {
                 assert.ifError(err)
                 res.should.have.status(200)
@@ -600,7 +551,7 @@ describe('UC-3 Manage meals /api/meal', () => {
                         message
                     } = res.body
                     status.should.be.a('number').that.equals(401)
-                    message.should.be.a('string').that.equals('Unauthorized')
+                    message.should.be.a('string').that.equals('Not authorized')
                     done()
                 })
         })
@@ -608,10 +559,7 @@ describe('UC-3 Manage meals /api/meal', () => {
         it('TC-305-3 Not the owner of the data', (done) => {
             chai.request(server)
                 .delete('/api/meal/1')
-                .set(
-                    'authorization',
-                    'Bearer ' + wrongToken
-                )
+                .set("authorization", "Bearer " + jwt.sign({ userId: 2 }, jwtSecretKey))
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(403)
@@ -634,10 +582,7 @@ describe('UC-3 Manage meals /api/meal', () => {
         it('TC-305-4 Meal does not exist', (done) => {
             chai.request(server)
                 .delete('/api/meal/420')
-                .set(
-                    'authorization',
-                    'Bearer ' + token
-                )
+                .set("authorization", "Bearer " + jwt.sign({ userId: 1 }, jwtSecretKey))
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(404)
@@ -660,10 +605,7 @@ describe('UC-3 Manage meals /api/meal', () => {
         it('TC-305-5 Meal successfully deleted', (done) => {
             chai.request(server)
                 .delete('/api/meal/1')
-                .set(
-                    'authorization',
-                    'Bearer ' + token
-                )
+                .set("authorization", "Bearer " + jwt.sign({ userId: 1 }, jwtSecretKey))
                 .end((err, res) => {
                     assert.ifError(err)
                     res.should.have.status(200)
@@ -681,190 +623,6 @@ describe('UC-3 Manage meals /api/meal', () => {
                     message.should.be.a('string').that.equals('Meal succesfully deleted')
                     done()
                 })
-        })
-    })
-})
-
-describe('UC-4 participating in meals /api/:mealId/participate', () => {
-    before((done) => {
-        token = jwt.sign({
-                userId: 1
-            },
-            process.env.JWT_SECRET, {
-                expiresIn: '100d'
-            });
-
-        wrongToken = jwt.sign({
-                userId: 2
-            },
-            process.env.JWT_SECRET, {
-                expiresIn: '100d'
-            });
-        done()
-    })
-
-    beforeEach((done) => {
-        dbconnection.getConnection((err, connection) => {
-            if (err) throw err
-            connection.query(CLEAR_DB + INSERT_USER + INSERT_MEALS + INSERT_PARTICIPATION, (error, results, fields) => {
-                connection.release()
-                if (error) throw error
-                done()
-            })
-        })
-    })
-
-    describe('UC-401 Sign up for a meal', () => {
-        it('TC-401-1 Not logged in', (done) => {
-            chai.request(server)
-                .get('/api/meal/1/participate')
-                .end((err, res) => {
-                    assert.ifError(err)
-                    res.should.have.status(401)
-                    res.should.be.an('object')
-
-                    res.body.should.be
-                        .an('object')
-                        .that.has.all.keys('status', 'message')
-
-                    let {
-                        status,
-                        message
-                    } = res.body
-                    status.should.be.a('number').that.equals(401)
-                    message.should.be.a('string').that.equals('Authorization header is missing')
-                    done()
-                })
-        })
-
-        it('TC-401-2 Meal does not exist', (done) => {
-            chai.request(server)
-                .get('/api/meal/420/participate')
-                .set(
-                    'authorization',
-                    'Bearer ' + token
-                )
-                .end((err, res) => {
-                    assert.ifError(err)
-                    res.should.have.status(404)
-                    res.should.be.an('object')
-
-                    res.body.should.be
-                        .an('object')
-                        .that.has.all.keys('status', 'message')
-
-                    let {
-                        status,
-                        message
-                    } = res.body
-                    status.should.be.a('number').that.equals(404)
-                    message.should.be.a('string').that.equals('This meal does not exist')
-                    done()
-                })
-        })
-
-        it('TC-401-3 successfully singed up', (done) => {
-            chai.request(server)
-                .get('/api/meal/1/participate')
-                .set(
-                    'authorization',
-                    'Bearer ' + token
-                )
-                .end((err, res) => {
-                    assert.ifError(err)
-                    res.should.have.status(200)
-                    res.should.be.an('object')
-
-                    res.body.should.be
-                        .an('object')
-                        .that.has.all.keys('status', 'result')
-
-                    let {
-                        status,
-                        result
-                    } = res.body
-                    status.should.be.a('number').that.equals(200)
-                    expect(result.currentlyParticipating).to.equal(true)
-                    expect(result.currentAmountOfParticipants).to.equal(1)
-                    done()
-                })
-        })
-
-        describe('UC-402 Sign off for a meal', () => {
-            it('TC-402-1 Not logged in', (done) => {
-                chai.request(server)
-                    .get('/api/meal/2/participate')
-                    .end((err, res) => {
-                        assert.ifError(err)
-                        res.should.have.status(401)
-                        res.should.be.an('object')
-
-                        res.body.should.be
-                            .an('object')
-                            .that.has.all.keys('status', 'message')
-
-                        let {
-                            status,
-                            message
-                        } = res.body
-                        status.should.be.a('number').that.equals(401)
-                        message.should.be.a('string').that.equals('Authorization header is missing')
-                        done()
-                    })
-            })
-
-            it('402-2 Meal does not exist', (done) => {
-                chai.request(server)
-                    .get('/api/meal/420/participate')
-                    .set(
-                        'authorization',
-                        'Bearer ' + token
-                    )
-                    .end((err, res) => {
-                        assert.ifError(err)
-                        res.should.have.status(404)
-                        res.should.be.an('object')
-
-                        res.body.should.be
-                            .an('object')
-                            .that.has.all.keys('status', 'message')
-
-                        let {
-                            status,
-                            message
-                        } = res.body
-                        status.should.be.a('number').that.equals(404)
-                        message.should.be.a('string').that.equals('This meal does not exist')
-                        done()
-                    })
-            })
-
-            it('TC-402-3 successfully singed off', (done) => {
-                chai.request(server)
-                    .get('/api/meal/2/participate')
-                    .set(
-                        'authorization',
-                        'Bearer ' + token
-                    )
-                    .end((err, res) => {
-                        assert.ifError(err)
-                        res.should.have.status(200)
-                        res.should.be.an('object')
-
-                        res.body.should.be
-                            .an('object')
-                            .that.has.all.keys('status', 'result')
-
-                        let {
-                            status,
-                            result
-                        } = res.body
-                        status.should.be.a('number').that.equals(200)
-                        expect(result.currentlyParticipating).to.equal(false)
-                        expect(result.currentAmountOfParticipants).to.equal(0)
-                        done()
-                    })
-            })
         })
     })
 })
