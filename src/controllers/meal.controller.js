@@ -95,8 +95,6 @@ let mealController = {
 
             const addMeal = [meal.name, meal.description, meal.isActive, meal.isVega, meal.isVegan, meal.isToTakeHome, meal.dateTime, meal.imageUrl, stringAllergenes, cookId, meal.maxAmountOfParticipants, meal.price];
 
-            logger.info(mealToAdd);
-
             //SQL Queries
             connection.query('INSERT INTO meal (name, description, isActive, isVegan, isToTakeHome, dateTime, imageUrl, allergenes, maxAmountOfParticipants, price) VALUES (?,?,?,?,?,?,?,?,?,?)', addMeal, (err, results, fields) => {
                 connection.release();
