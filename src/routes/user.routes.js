@@ -17,19 +17,19 @@ userRouter.get("/", (req, res) => {
 
 
 //Post user to database
-userRouter.post("/api/user", authController.validateToken, userController.validateUserCreate, userController.addUser);
+userRouter.post("/api/user", userController.validateUserCreate, userController.validateEmail, userController.validatePassword, userController.addUser);
 
 //Get user with ID
 userRouter.get("/api/user/:userId", authController.validateToken, userController.getUserById);
 
 //Update a user
-userRouter.put("/api/user/:userId", authController.validateToken, userController.validateUserUpdate, userController.updateUser);
+userRouter.put("/api/user/:userId", authController.validateToken, userController.validateEmail, userController.validatePassword, userController.validatePhoneNumber, userController.updateUser);
 
 //Get all users
 userRouter.get("/api/user", authController.validateToken, userController.getAllUsers);
 
 //Delete user from database
-userRouter.delete("/api/user/:userId", authController.validateToken, userController.deleteUser);
+userRouter.delete("/api/user/:userId", authController.validateToken, authController.checkIfAccountIsFromUser, userController.deleteUser);
 
 //Get user profile
 userRouter.get("/api/user/profile", authController.validateToken, userController.profileUser);

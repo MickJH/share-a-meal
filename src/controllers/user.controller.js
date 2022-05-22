@@ -1,11 +1,13 @@
 const assert = require('assert');
 const dbconnection = require('../../database/dbconnection');
+const jwt = require('jsonwebtoken')
 const { jwtSecretKey } = require('../config/config');
 const logger = require('../config/config').logger;
+var Regex = require('regex');
 
 let userController = {
 
-
+    //Validations
     validateUserCreate: (req, res, next) => {
         const { firstName, lastName, city, emailAdress, password, street } = req.body;
 
@@ -24,20 +26,66 @@ let userController = {
             });
         }
     },
-    validateUserUpdate: (req, res, next) => {
-        const { emailAdress } = req.body;
-        try {
+    // validateUserUpdate: (req, res, next) => {
+    //     const { emailAdress } = req.body;
+    //     try {
 
-            assert(typeof emailAdress === 'string', 'Email address must be a string');
+    //         assert(typeof emailAdress === 'string', 'Email address not valid');
 
+    //         next();
+    //     } catch (err) {
+    //         next({
+    //             status: 400,
+    //             message: err.message,
+    //         });
+    //     }
+    // },
+
+    validateEmail: (req, res, next) => {
+        var regex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
+        const email = req.body.emailAdress;
+        if (regex.test(email)) {
             next();
-        } catch (err) {
-            next({
+        } else {
+            res.status(400).json({
                 status: 400,
-                message: err.message,
-            });
+                message: "Email address not valid"
+            })
         }
     },
+
+
+    validatePassword: (req, res, next) => {
+        const regex = /^.{6,}$/;
+        const password = req.body.password;
+        if (regex.test(password)) {
+            next();
+        } else {
+            res.status(400).json({
+                status: 400,
+                message: "Password too weak"
+            })
+        }
+    },
+
+    validatePhoneNumber: (req, res, next) => {
+        var regex = /(^\+[0-9]{2}|^\+[0-9]{2}\(0\)|^\(\+[0-9]{2}\)\(0\)|^00[0-9]{2}|^0)([0-9]{9}$|[0-9\-\s]{10}$)/;
+        const phoneNumber = req.body.phoneNumber;
+        if (phoneNumber) {
+            if (regex.test(phoneNumber)) {
+                next();
+            } else {
+                res.status(400).json({
+                    status: 400,
+                    message: "Phone number not valid"
+                })
+            }
+        } else {
+            next();
+        }
+    },
+
+
     //Add user to database
     addUser: (req, res, next) => {
         logger.debug("addUser called")
@@ -90,9 +138,86 @@ let userController = {
         dbconnection.getConnection(function(err, connection) {
             if (err) throw err // not connected!
 
+            let { isActive, firstName, limit, lastName, emailAdress, street, city, phoneNumber } = req.query;
+
+            let queryString = "SELECT * FROM user";
+
+            if (isActive || firstName || limit || lastName || emailAdress || street || city || phoneNumber) {
+                let count = 0;
+
+                if (isActive || firstName || lastName || emailAdress || street || city || phoneNumber) {
+                    queryString += " WHERE ";
+                }
+
+                if (isActive) {
+                    queryString += `isActive = ${isActive}`;
+                    count++;
+                }
+
+                if (firstName) {
+                    if (count === 1) {
+                        queryString += " AND ";
+                    }
+                    count++;
+                    queryString += `firstName = '${firstName}'`;
+                }
+
+                if (lastName) {
+                    if (count === 1) {
+                        queryString += " AND ";
+                    }
+                    count++;
+                    queryString += `lastName = '${lastName}'`;
+                }
+
+                if (emailAdress) {
+                    if (count === 1) {
+                        queryString += " AND ";
+                    }
+                    count++;
+                    queryString += `emailAdress = '${emailAdress}'`;
+                }
+
+                if (street) {
+                    if (count === 1) {
+                        queryString += " AND ";
+                    }
+                    count++;
+                    queryString += `street = '${street}'`;
+                }
+
+                if (city) {
+                    if (count === 1) {
+                        queryString += " AND ";
+                    }
+                    count++;
+                    queryString += `city = '${city}'`;
+                }
+
+                if (phoneNumber) {
+                    if (count === 1) {
+                        queryString += " AND ";
+                    }
+                    count++;
+                    queryString += `phoneNumber = '${phoneNumber}'`;
+                }
+
+                if (limit) {
+                    count++;
+
+                    queryString += ` LIMIT ${limit}`;
+                }
+
+                if (count > 2) {
+                    return next({
+                        status: 400,
+                        message: "Maximum amount of parameters (2) has been surpassed.",
+                    });
+                }
+            }
             // Use the connection
             connection.query(
-                'SELECT * FROM user;',
+                queryString,
                 function(error, results, fields) {
                     // When done with the connection, release it.
                     connection.release()
@@ -104,7 +229,7 @@ let userController = {
                     console.log('#results = ', results.length)
                     res.status(200).json({
                         status: 200,
-                        results: results,
+                        result: results,
                     })
                 }
             )
@@ -270,7 +395,7 @@ let userController = {
                 id = decoded.userId;
             })
 
-            connection.query('SLEECT * FROM user WHERE id = ?', id, (err, results, fields) => {
+            connection.query('SELECT * FROM user WHERE id = ?', id, (err, results, fields) => {
                 connection.release();
                 if (err) throw err;
 

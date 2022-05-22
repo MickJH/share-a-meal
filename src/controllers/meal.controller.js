@@ -1,6 +1,5 @@
 const assert = require('assert');
-const { resolveSoa } = require('dns');
-const { nextTick } = require('process');
+const jwt = require('jsonwebtoken');
 const dbconnection = require('../../database/dbconnection');
 const logger = require('../config/config').logger;
 
