@@ -180,38 +180,6 @@ describe('UC-3 Manage meals /api/meal', () => {
     })
 
     describe('UC-302 editing a meal', () => {
-        it('TC-302-1 Required input is missing', (done) => {
-            chai.request(server)
-                .put('/api/meal/1')
-                .set("authorization", "Bearer " + jwt.sign({ userId: 1 }, jwtSecretKey))
-                .send({
-                    "description": "De pastaklassieker bij uitstek.",
-                    "isActive": 1,
-                    "isVega": 1,
-                    "isVegan": 1,
-                    "isToTakeHome": 1,
-                    "dateTime": "2022-05-15T20:07:10.870Z",
-                    "imageUrl": "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg"
-                })
-                .end((err, res) => {
-                    assert.ifError(err)
-                    res.should.have.status(400)
-                    res.should.be.an('object')
-
-                    res.body.should.be
-                        .an('object')
-                        .that.has.all.keys('status', 'message')
-
-                    let {
-                        status,
-                        message
-                    } = res.body
-                    status.should.be.a('number').that.equals(400)
-                    message.should.be.a('string').that.equals('Required field is missing')
-                    done()
-                })
-        })
-
         it("TC-302-1 Required input is missing", (done) => {
             chai.request(server)
                 .put("/api/meal/1")
