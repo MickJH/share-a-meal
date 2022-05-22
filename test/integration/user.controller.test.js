@@ -82,55 +82,54 @@ describe('UC-2 Manage users /api/user', () => {
                 });
         });
 
-        // it("TC-201-2 Invalid email address", (done) => {
-        //     chai.request(server)
-        //         .post('/api/user')
-        //         .send({
-        //             firstName: "Mick",
-        //             lastName: "Holster",
-        //             street: "Test street",
-        //             city: "Dordrecht",
-        //             //Invalid email address
-        //             emailAdress: "123454.com",
-        //             password: "secret",
-        //         })
-        //         .end((req, res) => {
-        //             res.should.have.status(400);
-        //             res.should.be.an('object');
+        it("TC-201-2 Invalid email address", (done) => {
+            chai.request(server)
+                .post('/api/user')
+                .send({
+                    firstName: "Mick",
+                    lastName: "Holster",
+                    street: "Test street",
+                    city: "Dordrecht",
+                    //Invalid email address
+                    emailAdress: "test@",
+                    password: "secret123",
+                })
+                .end((req, res) => {
+                    res.should.have.status(400);
+                    res.should.be.an('object');
 
-        //             res.body.should.be.an('object').that.has.all.keys('status', 'message');
+                    res.body.should.be.an('object').that.has.all.keys('status', 'message');
+                    let { status, message } = res.body;
+                    status.should.be.a('number').that.equals(400);
+                    message.should.be.a('string').that.equals('Email address not valid');
+                    done();
+                })
+        })
 
-        //             let { status, message } = res.body;
-        //             status.should.be.a('number').that.equals(400);
-        //             message.should.be.a('string').that.equals('Email address not valid');
+        it("TC-201-3 Invalid password", (done) => {
+            chai.request(server)
+                .post('/api/user')
+                .send({
+                    firstName: "Mick",
+                    lastName: "Holster",
+                    street: "Test street",
+                    city: "Dordrecht",
+                    emailAdress: "mj.holster@student.avans.nl",
+                    //Invalid password
+                    password: "four",
+                })
+                .end((req, res) => {
+                    res.should.have.status(400);
+                    res.should.be.an('object');
 
-        //         })
-        // })
+                    res.body.should.be.an('object').that.has.all.keys('status', 'message');
 
-        // it("TC-201-3 Invalid password", (done) => {
-        //     chai.request(server)
-        //         .post('/api/user')
-        //         .send({
-        //             firstName: "Mick",
-        //             lastName: "Holster",
-        //             street: "Test street",
-        //             city: "Dordrecht",
-        //             emailAdress: "mj.holster@student.avans.nl",
-        //             //Invalid password
-        //             password: "four",
-        //         })
-        //         .end((req, res) => {
-        //             res.should.have.status(400);
-        //             res.should.be.an('object');
-
-        //             res.body.should.be.an('object').that.has.all.keys('status', 'message');
-
-        //             let { status, message } = res.body;
-        //             status.should.be.a('number').that.equals(400);
-        //             message.should.be.a('string').that.equals('Password too weak');
-
-        //         })
-        // })
+                    let { status, message } = res.body;
+                    status.should.be.a('number').that.equals(400);
+                    message.should.be.a('string').that.equals('Password too weak');
+                    done();
+                })
+        })
 
         it("TC-201-4 User already exists", (done) => {
             chai.request(server)
