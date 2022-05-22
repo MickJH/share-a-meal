@@ -193,22 +193,21 @@ describe('UC-3 Manage meals /api/meal', () => {
                     "dateTime": "2022-05-15T20:07:10.870Z",
                     "imageUrl": "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg"
                 })
-                .end((req, res) => {
-                    // assert.ifError(err)
-                    // res.should.have.status(400)
-                    // res.should.be.an('object')
+                .end((err, res) => {
+                    assert.ifError(err)
+                    res.should.have.status(400)
+                    res.should.be.an('object')
 
-                    // res.body.should.be
-                    //     .an('object')
-                    //     .that.has.all.keys('status', 'message')
+                    res.body.should.be
+                        .an('object')
+                        .that.has.all.keys('status', 'message')
 
-                    // let {
-                    //     status,
-                    //     message
-                    // } = res.body
-                    // status.should.be.a('number').that.equals(400)
-                    // message.should.be.a('string').that.equals('Required input is missing')
-                    console.log(res.body)
+                    let {
+                        status,
+                        message
+                    } = res.body
+                    status.should.be.a('number').that.equals(400)
+                    message.should.be.a('string').that.equals('Required field is missing')
                     done()
                 })
         })
