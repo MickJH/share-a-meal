@@ -92,10 +92,10 @@ let mealController = {
             });
 
 
-            const addMeal = [meal.name, meal.description, meal.isActive, meal.isVega, meal.isVegan, meal.isToTakeHome, meal.dateTime, meal.imageUrl, stringAllergenes, cookId, meal.maxAmountOfParticipants, meal.price];
+            const addMeal = [meal.name, meal.description, meal.isActive, meal.isVega, meal.isVegan, meal.isToTakeHome, meal.imageUrl, stringAllergenes, cookId, meal.maxAmountOfParticipants, meal.price];
 
             //SQL Queries
-            connection.query('INSERT INTO meal (name, description, isActive, isVegan, isToTakeHome, dateTime, imageUrl, allergenes, maxAmountOfParticipants, price) VALUES (?,?,?,?,?,?,?,?,?,?)', addMeal, (err, results, fields) => {
+            connection.query('INSERT INTO meal (name, description, isActive, isVega, isVegan, isToTakeHome, imageUrl, allergenes, maxAmountOfParticipants, price) VALUES (?,?,?,?,?,?,?,?,?,?)', addMeal, (err, results, fields) => {
                 connection.release();
                 if (err) throw err;
 
