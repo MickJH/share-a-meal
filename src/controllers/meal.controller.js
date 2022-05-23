@@ -241,9 +241,9 @@ let mealController = {
                     ...meal,
                 }
 
-                const updateMeal = [meal.name, meal.description, meal.isActive, meal.isVega, meal.isVegan, meal.isToTakeHome, meal.dateTime, meal.imageUrl, meal.maxAmountOfParticipants, meal.price, id];
+                const updateMeal = [updatedMeal.name, updatedMeal.description, updatedMeal.isActive, updatedMeal.isVega, updatedMeal.isVegan, updatedMeal.isToTakeHome, updatedMeal.imageUrl, updatedMeal.maxAmountOfParticipants, updatedMeal.price, id];
 
-                connection.query('UPDATE meal SET name = ?, description = ?, isActive = ?, isVega = ?, isVegan = ?, isToTakeHome = ?, dateTime = ?, imageUrl = ?, maxAmountOfParticipants = ?, price = ? WHERE id = ?', updateMeal, (err, results, fields) => {
+                connection.query('UPDATE meal SET name = ?, description = ?, isActive = ?, isVega = ?, isVegan = ?, isToTakeHome = ?, imageUrl = ?, maxAmountOfParticipants = ?, price = ? WHERE id = ?', updateMeal, (err, results, fields) => {
                     {
                         connection.release();
                         if (err) throw err
