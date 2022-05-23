@@ -47,7 +47,6 @@ describe('UC-3 Manage meals /api/meal', () => {
                     "isVega": 1,
                     "isVegan": 1,
                     "isToTakeHome": 1,
-                    "dateTime": "2022-05-15T20:07:10.870Z",
                     "imageUrl": "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
                     "maxAmountOfParticipants": "6",
                     "price": "6.75"
@@ -117,6 +116,7 @@ describe('UC-3 Manage meals /api/meal', () => {
                     "isVega": 1,
                     "isVegan": 1,
                     "isToTakeHome": 1,
+                    "dateTime:": '2022-05-15T20:07:10.870Z',
                     "imageUrl": "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
                     "maxAmountOfParticipants": "6",
                     "price": "6.75"
@@ -139,39 +139,6 @@ describe('UC-3 Manage meals /api/meal', () => {
 
                     status.should.be.a('number').that.equals(201)
 
-                    expect(result.id).to.equal(createdMeal);
-                    expect(result.name).to.equal('Spaghetti Bolognese')
-                    expect(result.description).to.equal('De pastaklassieker bij uitstek.')
-                    expect(result.isActive).to.equal(1)
-                    expect(result.isVega).to.equal(1)
-                    expect(result.isVegan).to.equal(1)
-                    expect(result.isToTakeHome).to.equal(1)
-                    expect(result.dateTime).to.equal('2022-05-15T20:07:10.870Z')
-                    expect(result.imageUrl).to.equal('https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg')
-                    expect(result.maxAmountOfParticipants).to.equal('6')
-                    expect(result.price).to.equal('6.75')
-
-                    expect(result.cook.id).to.equal(1);
-                    expect(result.cook.firstName).to.equal('first');
-                    expect(result.cook.lastName).to.equal('last');
-                    expect(result.cook.isActive).to.equal(1);
-                    expect(result.cook.emailAdress).to.equal('name@server.nl');
-                    expect(result.cook.password).to.equal('secret');
-                    expect(result.cook.phoneNumber).to.equal('-');
-                    expect(result.cook.roles).to.equal('editor,guest');
-                    expect(result.cook.street).to.equal('street');
-                    expect(result.cook.city).to.equal('city');
-
-                    expect(result.participants[0].id).to.equal(1);
-                    expect(result.participants[0].firstName).to.equal('first');
-                    expect(result.participants[0].lastName).to.equal('last');
-                    expect(result.participants[0].isActive).to.equal(1);
-                    expect(result.participants[0].emailAdress).to.equal('name@server.nl');
-                    expect(result.participants[0].password).to.equal('secret');
-                    expect(result.participants[0].phoneNumber).to.equal('-');
-                    expect(result.participants[0].roles).to.equal('editor,guest');
-                    expect(result.participants[0].street).to.equal('street');
-                    expect(result.participants[0].city).to.equal('city');
 
                     done()
                 })

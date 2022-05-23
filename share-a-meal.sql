@@ -28,7 +28,7 @@ CREATE TABLE `meal` (
   `isVega` tinyint NOT NULL DEFAULT '0',
   `isVegan` tinyint NOT NULL DEFAULT '0',
   `isToTakeHome` tinyint NOT NULL DEFAULT '1',
-  `dateTime` datetime NOT NULL,
+  `dateTime` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   `maxAmountOfParticipants` int NOT NULL DEFAULT '6',
   `price` decimal(5,2) NOT NULL,
   `imageUrl` varchar(255) NOT NULL,
